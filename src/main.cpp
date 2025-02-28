@@ -7,13 +7,13 @@ const char* password = "elmaarmut";
 
 // UDP Settings
 WiFiUDP udp;
-const char* laptop_ip = "192.168.1.140";  // Replace with your laptop's IP
+const char* laptop_ip = "192.168.1.128";  // Replace with your laptop's IP
 const int udp_port = 5005;  // Port to send data
 
 // UART Settings
 #define RXD2 16  // ESP32 UART RX pin
 #define TXD2 17  // ESP32 UART TX pin
-#define BAUD_RATE 115200  // Updated baud rate
+#define BAUD_RATE 1900000    // Updated baud rate
 
 // LED Pin
 #define LED_PIN 22
@@ -22,6 +22,7 @@ void setup() {
     Serial.begin(115200);  // Debugging
     Serial2.begin(BAUD_RATE, SERIAL_8N1, RXD2, TXD2);
     pinMode(LED_PIN, OUTPUT);  // Set LED pin as output
+    digitalWrite(LED_PIN, HIGH);  // Turn on LED
 
     // Connect to Wi-Fi
     WiFi.begin(ssid, password);
@@ -32,12 +33,12 @@ void setup() {
     }
     Serial.println("\nConnected to Wi-Fi");
 
-    digitalWrite(LED_PIN, HIGH);  // Turn on LED
+    digitalWrite(LED_PIN, LOW);  // Turn off LED
 
 }
 
 void loop() {
-    static char buffer[256];
+    static char buffer[1024];
     static int index = 0;
     
     while (Serial2.available()) {
@@ -50,13 +51,9 @@ void loop() {
         if (c == '\n') {  // End of line
             buffer[index] = '\0';  // Null-terminate the string
             
-            Serial.print("Complete message: ");
-            Serial.println(buffer);
-            
             udp.beginPacket(laptop_ip, udp_port);
             udp.write((uint8_t*)buffer, index);
             udp.endPacket();
-            Serial.println("UDP packet sent.");
             
             index = 0;  // Reset buffer index
         } else if (index < sizeof(buffer) - 1) {
